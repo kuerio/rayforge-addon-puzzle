@@ -1,0 +1,25 @@
+# Unique addon identifier. Must be a valid Python module name and match
+# the directory name of the package below.
+name: "puzzle_maker"
+
+# Shown in Rayforge's addon manager and menu.
+display_name: "Puzzle Maker"
+description: "Generates laser-ready jigsaw puzzle cut lines as a new workpiece."
+api_version: 24
+
+depends:
+  - rayforge>=1.14.0
+
+author:
+  name: "kuerio"
+  email: "kuerio@users.noreply.github.com"
+
+license:
+  name: "MIT"
+
+provides:
+  # Loaded in worker and main process: registers the editor command.
+  backend: "puzzle_maker.backend"
+
+  # Loaded in the main process only: registers the Tools menu entry.
+  frontend: "puzzle_maker.frontend"

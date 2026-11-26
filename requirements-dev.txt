@@ -1,0 +1,5 @@
+# Only needed for the helper scripts and optional tooling.
+# The generator and its tests run on a stock Python 3.10+ (stdlib only).
+pyyaml>=6.0
+pre-commit>=3.5
+ruff>=0.6
