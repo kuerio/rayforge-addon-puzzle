@@ -138,6 +138,18 @@ class PuzzleCmd:
         except Exception:  # pragma: no cover - depends on addon set
             logger.warning("Could not create a Contour step", exc_info=True)
             return None
+        # Rayforge seeds a step's own maxima from the machine profile and
+        # clamps steps it creates itself. A step built in code starts at
+        # the generic defaults (5000 mm/min travel), which the pipeline
+        # then flags as "above the machine's maximum". Clamp it here so a
+        # fresh puzzle has no warnings.
+        for key in ("cut_speed", "travel_speed"):
+            limit = getattr(step, f"max_{key}", None)
+            value = getattr(step, key, None)
+            if isinstance(limit, (int, float)) and isinstance(
+                value, (int, float)
+            ):
+                setattr(step, key, min(value, limit))
         step.workpiece_uids = [workpiece.uid]
         return step
 

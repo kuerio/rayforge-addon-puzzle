@@ -132,6 +132,13 @@ portable and testable.
   not been executed inside Rayforge yet. Expect a short round of fixes
   during the first install.
 
+## Known issues / changelog
+
+* **0.1.1** — the generated Contour step is clamped to the machine's own
+  speed limits (`cut_speed`, `travel_speed`); before, Rayforge flagged it
+  with "travel_speed 5000 mm/min is above the machine's maximum".
+* **0.1.0** — first version.
+
 ## Roadmap
 
 * Live preview of an engraved image behind the cut lines.
