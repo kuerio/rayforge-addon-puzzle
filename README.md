@@ -51,6 +51,12 @@ python3 -m puzzle_maker.cli --columns 6 --rows 4 --width 200 --height 150 \
 | Corner radius | Rounded outer border, e.g. for a nicer look in wood |
 | Add a Contour step | Whether the cut operation is created for you |
 
+The dialog **remembers the last values you used** — including the seed — so a
+puzzle only has to be set up once; *Reset* returns to the built-in defaults.
+The values live in Rayforge's addon data directory
+(`<config>/addon_data/puzzle_maker/last_puzzle.yaml`), so they travel with the
+rest of your configuration, including a shared config on a NAS.
+
 ## Installing
 
 ### As a Rayforge addon
@@ -134,6 +140,9 @@ portable and testable.
 
 ## Known issues / changelog
 
+* **0.2.0** — the dialog remembers the last used parameters and gained a
+  *Reset* button; `PuzzleParams` can round-trip to plain data
+  (`to_dict`/`from_dict`), covered by tests.
 * **0.1.1** — the generated Contour step is clamped to the machine's own
   speed limits (`cut_speed`, `travel_speed`); before, Rayforge flagged it
   with "travel_speed 5000 mm/min is above the machine's maximum".

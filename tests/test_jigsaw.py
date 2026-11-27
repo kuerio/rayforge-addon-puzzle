@@ -47,6 +47,63 @@ class TestPuzzleParams(unittest.TestCase):
         self.assertIn("seed 9", text)
 
 
+class TestPuzzleParamsSerialization(unittest.TestCase):
+    """The dialog stores the last used values, so this must round-trip."""
+
+    def test_round_trip(self):
+        params = PuzzleParams(
+            width_mm=222.5,
+            height_mm=111.25,
+            columns=7,
+            rows=5,
+            tab_size_percent=25.0,
+            jitter_percent=6.0,
+            seed=99,
+            border_radius_mm=4.0,
+        )
+        self.assertEqual(PuzzleParams.from_dict(params.to_dict()), params)
+
+    def test_dict_is_plain_data(self):
+        data = PuzzleParams().to_dict()
+        self.assertEqual(
+            sorted(data),
+            [
+                "border_radius_mm",
+                "columns",
+                "height_mm",
+                "jitter_percent",
+                "rows",
+                "seed",
+                "tab_size_percent",
+                "width_mm",
+            ],
+        )
+        self.assertTrue(all(isinstance(v, (int, float)) for v in data.values()))
+
+    def test_unknown_keys_are_ignored(self):
+        data = {**PuzzleParams().to_dict(), "future_option": True}
+        self.assertEqual(PuzzleParams.from_dict(data).columns, 6)
+
+    def test_none_values_keep_the_default(self):
+        params = PuzzleParams.from_dict({"columns": 3, "seed": None})
+        self.assertEqual(params.columns, 3)
+        self.assertEqual(params.seed, 1)
+
+    def test_invalid_values_raise(self):
+        with self.assertRaises(ValueError):
+            PuzzleParams.from_dict({"columns": 0})
+        with self.assertRaises(ValueError):
+            PuzzleParams.from_dict({"width_mm": -1})
+
+    def test_non_mapping_raises(self):
+        with self.assertRaises(ValueError):
+            PuzzleParams.from_dict(["not", "a", "mapping"])
+
+    def test_missing_keys_give_defaults(self):
+        params = PuzzleParams.from_dict({})
+        self.assertEqual(params, PuzzleParams())
+
+
 class TestGenerate(unittest.TestCase):
     def test_line_count(self):
         puzzle = generate(PuzzleParams(columns=5, rows=4))

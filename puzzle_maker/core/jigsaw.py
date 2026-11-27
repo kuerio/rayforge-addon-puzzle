@@ -75,6 +75,49 @@ class PuzzleParams:
             f"seed {self.seed}"
         )
 
+    # -- serialization ------------------------------------------------
+    def to_dict(self) -> dict[str, float | int]:
+        """The parameters as plain data, for storing them as YAML/JSON."""
+        return {
+            "width_mm": self.width_mm,
+            "height_mm": self.height_mm,
+            "columns": self.columns,
+            "rows": self.rows,
+            "tab_size_percent": self.tab_size_percent,
+            "jitter_percent": self.jitter_percent,
+            "seed": self.seed,
+            "border_radius_mm": self.border_radius_mm,
+        }
+
+    @classmethod
+    def from_dict(cls, data: object) -> "PuzzleParams":
+        """Rebuild the parameters from *data*.
+
+        Unknown keys are ignored so a file written by a newer version
+        still loads; invalid values raise :class:`ValueError` through
+        the constructor.
+        """
+        if not isinstance(data, dict):
+            raise ValueError("Expected a mapping of puzzle parameters.")
+        known = {
+            key: value
+            for key, value in data.items()
+            if key in cls.__dataclass_fields__ and value is not None
+        }
+        for key in ("columns", "rows", "seed"):
+            if key in known:
+                known[key] = int(known[key])
+        for key in (
+            "width_mm",
+            "height_mm",
+            "tab_size_percent",
+            "jitter_percent",
+            "border_radius_mm",
+        ):
+            if key in known:
+                known[key] = float(known[key])
+        return cls(**known)
+
 
 @dataclass
 class PuzzlePaths:

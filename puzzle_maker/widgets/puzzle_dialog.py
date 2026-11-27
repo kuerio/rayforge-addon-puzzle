@@ -18,6 +18,7 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Adw, Gio, Gtk  # noqa: E402
 
+from .. import preferences  # noqa: E402
 from ..core.jigsaw import PuzzleParams  # noqa: E402
 from ..core.svg import write_puzzle_svg  # noqa: E402
 from .preview import PuzzlePreview  # noqa: E402
@@ -62,7 +63,9 @@ class PuzzleDialog(Adw.Window):
     ) -> None:
         super().__init__()
         self._on_accept = on_accept
-        self._build(params or PuzzleParams())
+        # Start from the last used values so the dialog does not reset to
+        # the built-in defaults every time.
+        self._build(params or preferences.load())
 
         self.set_transient_for(parent)
         self.set_modal(True)
@@ -175,9 +178,15 @@ class PuzzleDialog(Adw.Window):
 
         for row in self._parameter_rows():
             row.connect("notify::value", self._on_changed)
+        self.connect("close-request", self._on_close_request)
 
     def _header_bar(self) -> Adw.HeaderBar:
         bar = Adw.HeaderBar()
+        reset = Gtk.Button(label=_("Reset"))
+        reset.set_tooltip_text(_("Back to the built-in defaults"))
+        reset.connect("clicked", self._on_reset_clicked)
+        bar.pack_start(reset)
+
         save = Gtk.Button(label=_("Save SVG…"))
         save.connect("clicked", self._on_save_clicked)
         bar.pack_start(save)
@@ -199,6 +208,24 @@ class PuzzleDialog(Adw.Window):
             self._jitter,
             self._radius,
         ]
+
+    def _apply_params(self, params: PuzzleParams) -> None:
+        """Write *params* into the rows (used by Reset)."""
+        self._width.set_value(params.width_mm)
+        self._height.set_value(params.height_mm)
+        self._columns.set_value(params.columns)
+        self._rows.set_value(params.rows)
+        self._seed.set_value(params.seed)
+        self._tab_size.set_value(params.tab_size_percent)
+        self._jitter.set_value(params.jitter_percent)
+        self._radius.set_value(params.border_radius_mm)
+        self._preview.set_params(params)
+
+    def _remember(self) -> None:
+        """Store the current values for the next time the dialog opens."""
+        params = self.current_params()
+        if params is not None:
+            preferences.save(params)
 
     # -- state --------------------------------------------------------
     def current_params(self) -> PuzzleParams | None:
@@ -238,12 +265,25 @@ class PuzzleDialog(Adw.Window):
         params = self.current_params()
         if params is None:
             return
+        self._remember()
         self._on_accept(params, self._with_contour.get_active())
+
+    def _on_reset_clicked(self, _button: Gtk.Button) -> None:
+        """Back to the built-in defaults, and forget the stored ones."""
+        preferences.clear()
+        self._apply_params(PuzzleParams())
+        self._on_changed()
+
+    def _on_close_request(self, _window) -> bool:
+        """Remember what was on screen, even without adding a puzzle."""
+        self._remember()
+        return False
 
     def _on_save_clicked(self, _button: Gtk.Button) -> None:
         params = self.current_params()
         if params is None:
             return
+        self._remember()
         if not hasattr(Gtk, "FileDialog"):
             self._show_error(_("Saving needs GTK 4.10 or newer."))
             return

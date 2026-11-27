@@ -16,7 +16,7 @@ from __future__ import annotations
 __all__ = ["__version__", "addon_name"]
 
 #: Version of this addon (keep in sync with the git tag).
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 #: Must match the directory name and the ``name`` key in
 #: ``rayforge-addon.yaml``.
